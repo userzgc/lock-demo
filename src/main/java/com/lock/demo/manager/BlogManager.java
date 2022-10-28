@@ -17,7 +17,6 @@ public class BlogManager {
   private BlogMapper blogMapper;
   /*根据mysql version字段来判断数据是否被其他线程执行*/
   public void  updateBlogInfo(Blog blog){
-    log.info("当前线程名字"+Thread.currentThread().getName());
         int version = blogMapper.queryVersionById(blog.getId());
         blog.setVersion(version);
         try {
