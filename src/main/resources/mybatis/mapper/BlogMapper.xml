@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lock.demo.mapper.BlogMapper">
+    <sql id="updateInfo">
+        <set>
+            <if test="id != null">id = #{id},</if>
+            <if test="blogTitle != null">blog_title = #{blogTitle},</if>
+            <if test="blogContext != null">blog_context = #{blogContext},</if>
+            version=version+1
+        </set>
+    </sql>
+
+    <select id="queryVersionById" resultType="java.lang.Integer">
+        select version from t_blog where id=#{id}
+    </select>
+
+    <update id="UpdateBlogByIdAndVersion" parameterType="com.lock.demo.bean.Blog">
+        update t_blog
+        <include refid="updateInfo"></include>
+        where version = #{version} and id= #{id}
+    </update>
+
+
+</mapper>

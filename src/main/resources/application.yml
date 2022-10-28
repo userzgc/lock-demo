@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    username: root
+    password: 1qaz2wsx
+    #?serverTimezone=UTC解决时区的报错
+    url: jdbc:mysql://localhost:3306/lock?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# mybatis 配置
+mybatis:
+  # 扫描映射文件
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  # 别名扫描的包
+  type-aliases-package: com.lock.demo.bean
+  # mysql中字段是"_"分割，而我们程序中是驼峰的形式
+  configuration:
+    map-underscore-to-camel-case: true
