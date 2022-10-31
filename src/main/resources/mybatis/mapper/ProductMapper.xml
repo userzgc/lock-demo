@@ -16,6 +16,12 @@
         where
         id=#{id}
     </update>
+    <update id="updateProductCountById">
+        update t_product
+        set
+            product_count=1
+            where id=#{id,jdbcType=INTEGER}
+    </update>
 
 
 </mapper>

@@ -4,9 +4,12 @@ import com.lock.demo.bean.Product;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import javax.annotation.Resource;
+import java.util.concurrent.CountDownLatch;
+
 /**
  * @author zhangguichang
  * @date 2022-07-11 下午8:10
@@ -15,8 +18,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = {LockDemoApplication.class})
 @Log4j2
 public class ProductManagerTest {
-    @Autowired
+    @Resource
     private LockManager lockManager;
+    CountDownLatch countDownLatch = new CountDownLatch(2);
 
     //查询商品方法
     @Test
@@ -24,10 +28,16 @@ public class ProductManagerTest {
         Product product = lockManager.queryProductById(1);
         System.out.println(product);
     }
+
+    @Test
+    public void rollBackProductCount(){
+        lockManager.rollBackProductCount(1);;
+    }
+
     //无锁更新商品多线程
     @Test
-    public void updateProduct(){
-        new Thread(()->{
+    public void updateProduct() throws InterruptedException {
+        Thread t1=new Thread(()->{
             try {
                 String result=lockManager.updateProduct(1);
                 log.info("更新结果呢为"+result);
@@ -35,7 +45,7 @@ public class ProductManagerTest {
                 e.printStackTrace();
             }
         },"t1");
-        new Thread(()->{
+        Thread t2=new Thread(()->{
             try {
                 String result=lockManager.updateProduct(1);
                 log.info("更新结果呢为"+result);
@@ -44,23 +54,25 @@ public class ProductManagerTest {
             }
         },"t2");
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            t1.start();
+            t2.start();
+        }finally {
+            countDownLatch.countDown();
         }
+        countDownLatch.await();
     }
     //使用synchronized锁住线程资源
     @Test
-    public void synUpdateProduct(){
-        new Thread(()->{
+    public void synUpdateProduct() throws InterruptedException {
+        Thread t1=new Thread(()->{
             try {
-                String result=lockManager.synUpdateProduct(1);
+                 String result=lockManager.synUpdateProduct(1);
                 log.info("更新结果呢为"+result);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         },"t1");
-        new Thread(()->{
+        Thread t2=new Thread(()->{
             try {
                 String result=lockManager.synUpdateProduct(1);
                 log.info("更新结果呢为"+result);
@@ -68,27 +80,42 @@ public class ProductManagerTest {
                 e.printStackTrace();
             }
         },"t2");
-    }
-    //使用lock实现线程锁
-    @Test
-    public void lockUpdateProduct(){
-        new Thread(()->{
-            try {
-                String result=lockManager.lockUpdateProduct(1);
-                log.info("更新结果呢为"+result);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        },"t1");
-        new Thread(()->{
-            try {
-                String result=lockManager.lockUpdateProduct(1);
-                log.info("更新结果呢为"+result);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        },"t2");
+        try {
+            t1.start();
+            t2.start();
+        }finally {
+            countDownLatch.countDown();
+        }
+        countDownLatch.await();
 
     }
+    //使用ReentrantLock实现线程锁
+    @Test
+    public void lockUpdateProduct() throws InterruptedException {
+       Thread t1= new Thread(()->{
+            try {
+                String result=lockManager.lockUpdateProduct(1);
+                log.info("更新结果呢为"+result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        },"t1");
+       Thread t2= new Thread(()->{
+            try {
+                String result=lockManager.lockUpdateProduct(1);
+                log.info("更新结果呢为"+result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        },"t2");
+        try {
+            t1.start();
+            t2.start();
+        }finally {
+            countDownLatch.countDown();
+        }
+        countDownLatch.await();
+    }
+
 
 }

@@ -11,6 +11,13 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface ProductMapper {
+
+
      Product queryProductById(@Param("id") int id);
+
+
      int updateProductCount(Product product);
+
+
+     int updateProductCountById(@Param("id") int id);
 }
