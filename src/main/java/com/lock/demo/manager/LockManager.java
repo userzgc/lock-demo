@@ -3,10 +3,10 @@ package com.lock.demo.manager;
 import com.lock.demo.bean.Product;
 import com.lock.demo.mapper.ProductMapper;
 import lombok.extern.log4j.Log4j2;
+import org.openjdk.jol.info.ClassLayout;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -19,9 +19,6 @@ public class LockManager {
     @Resource
     private ProductMapper productMapper;
     private ReentrantLock lock=new ReentrantLock();
-    public Object resourceA = new Object();
-    public Object resourceB = new Object();
-
 
     //查找商品信息
     public Product queryProductById(int id){
@@ -58,6 +55,8 @@ public class LockManager {
 
     //排它锁更新库存
     public synchronized String synUpdateProduct(int id) throws Exception {
+        log.info("hashcode:"+LockManager.class.hashCode());
+        System.out.println(ClassLayout.parseInstance(LockManager.class).toPrintable());
         System.out.println("开始执行");
         Product product=new Product();
         Product productInfo = productMapper.queryProductById(id);
@@ -77,12 +76,13 @@ public class LockManager {
     public String lockUpdateProduct(int id) throws Exception {
 //        Lock lock=new ReentrantLock();
 //        Thread.sleep(1000);
-        System.out.println("获取当前线程"+Thread.currentThread().getName());
         lock.lock();
+        System.out.println("获取当前线程"+Thread.currentThread().getName());
+
         Product product=new Product();
         try {
             Product productInfo = productMapper.queryProductById(id);
-            System.out.println(Thread.currentThread().getName()+productInfo.getProductCount()+"结果");
+            System.out.println(Thread.currentThread().getName()+"获取库存"+productInfo.getProductCount()+"");
             if(productInfo.getProductCount()>=1){
                 product.setId(id);
                 product.setProductCount(productInfo.getProductCount()-1);
